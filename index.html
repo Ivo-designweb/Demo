@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<!-- Gestione Demo - Versione 1.0 -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Gestione Demo v1.0</title>
+<style>
+:root{
+  --bg:#f4f6f9;--card:#fff;--text:#1f2933;--muted:#6b7785;--line:#e3e8ee;--primary:#2563eb;--primary-d:#1d4ed8;
+  --err:#c92a2a;--ok:#2b8a3e;--warn:#e67700;
+  --busy:#d5d9de;--busy-b:#aeb5bd;--allday:#f8c4c4;--allday-b:#e03131;
+  --prop:#ffe3bd;--prop-b:#f08c00;--prov:#fff3a3;--prov-b:#d9a900;--conf:#b2e5bf;--conf-b:#2f9e44;--rem:#dccffc;--rem-b:#7048e8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.4}
+header{background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+header h1{font-size:18px;margin:0}
+header .ver{color:var(--muted);font-size:12px}
+header .sp{flex:1}
+header .usr{font-size:13px;color:var(--muted)}
+nav{display:flex;gap:4px;padding:8px 16px 0;max-width:1500px;margin:0 auto;flex-wrap:wrap}
+nav button{border:0;background:transparent;padding:8px 14px;border-radius:8px 8px 0 0;font-size:14px;cursor:pointer;color:var(--muted)}
+nav button.on{background:#fff;color:var(--text);font-weight:600;border:1px solid var(--line);border-bottom-color:#fff}
+main{max-width:1500px;margin:0 auto;padding:12px 16px 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px}
+.hidden{display:none!important}
+.layout{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px;align-items:start}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid #cbd2d9;border-radius:8px;font:inherit;background:#fff;color:var(--text)}
+textarea{min-height:230px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.row>*{flex:1}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{border:1px solid #cbd2d9;background:#fff;padding:9px 14px;border-radius:8px;cursor:pointer;font:inherit;color:var(--text)}
+.btn:hover{background:#f1f4f8}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.primary:hover{background:var(--primary-d)}
+.btn.danger{color:var(--err);border-color:#f1b0b0}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:5px 10px;font-size:13px}
+#msg{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:50;max-width:92vw;padding:10px 16px;border-radius:10px;color:#fff;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+#msg.ok{background:var(--ok)}#msg.err{background:var(--err)}#msg.info{background:#364152}
+#busy{position:fixed;top:8px;right:12px;z-index:60;background:#364152;color:#fff;font-size:12px;padding:4px 10px;border-radius:12px}
+.center{display:flex;justify-content:center;padding:40px 16px}
+.login{max-width:420px;width:100%}
+.err{color:var(--err)}
+.chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;margin-top:6px}
+.chip.good{background:#d3f9d8;color:#2b8a3e}.chip.bad{background:#ffe3e3;color:var(--err)}.chip.warn{background:#fff0d6;color:#b35c00}
+.prop-row{border:1px dashed var(--prop-b);background:#fff8ee;border-radius:10px;padding:10px;margin-bottom:8px}
+.prop-row .t{font-weight:600;margin-bottom:6px}
+.pf{display:grid;grid-template-columns:1fr 110px auto;gap:6px;align-items:center}
+.end{font-size:13px;color:var(--muted);white-space:nowrap}
+/* calendario */
+.cal-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.cal-head .ttl{font-weight:600;flex:1;min-width:150px;text-transform:capitalize}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:6px 0 10px}
+.legend i{display:inline-block;width:14px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-2px;border:1px solid}
+.l-busy{background:var(--busy);border-color:var(--busy-b)!important}.l-allday{background:var(--allday);border-color:var(--allday-b)!important}
+.l-prop{background:var(--prop);border:1px dashed var(--prop-b)!important}.l-prov{background:var(--prov);border-color:var(--prov-b)!important}
+.l-conf{background:var(--conf);border-color:var(--conf-b)!important}.l-rem{background:var(--rem);border-color:var(--rem-b)!important}
+.cal-scroll{overflow-x:auto}
+.wk{display:grid;grid-template-columns:46px repeat(5,minmax(96px,1fr));min-width:600px}
+.wk-h{padding:6px 4px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid var(--line);background:#fafbfc}
+.wk-h.today{color:var(--primary)}
+.wk-ad{border-bottom:1px solid var(--line);padding:2px;min-height:22px;display:flex;flex-direction:column;gap:2px}
+.wk-adl{font-size:10px;color:var(--muted);padding:4px 2px;border-bottom:1px solid var(--line)}
+.tl{position:relative;border-right:1px solid var(--line)}
+.tl span{position:absolute;right:4px;font-size:10px;color:var(--muted);transform:translateY(-6px)}
+.col{position:relative;border-left:1px solid var(--line);background-image:repeating-linear-gradient(to bottom,var(--line) 0,var(--line) 1px,transparent 1px,transparent 54px)}
+.band{position:absolute;left:0;right:0;background:rgba(120,130,145,.10);pointer-events:none}
+.ev{position:absolute;border-radius:5px;padding:1px 4px;font-size:11px;line-height:1.25;overflow:hidden;border:1px solid;cursor:default}
+.ev b{font-weight:600}
+.ev.busy{background:var(--busy);border-color:var(--busy-b)}.ev.busy.free{opacity:.5}
+.ev.prop{background:var(--prop);border:2px dashed var(--prop-b);z-index:3}
+.ev.prov{background:var(--prov);border-color:var(--prov-b);z-index:2}
+.ev.conf{background:var(--conf);border-color:var(--conf-b);z-index:2}
+.ev.rem{background:var(--rem);border-color:var(--rem-b);z-index:2}
+.ad{font-size:11px;padding:1px 5px;border-radius:5px;background:var(--allday);border:1px solid var(--allday-b);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mo{display:grid;grid-template-columns:repeat(7,minmax(80px,1fr));min-width:600px;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.mo-h{padding:5px;text-align:center;font-size:12px;font-weight:600;background:#fafbfc;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mo-d{min-height:96px;padding:3px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.mo-d.we{background:#f8f9fb}.mo-d.out{opacity:.45}.mo-d.today .n{background:var(--primary);color:#fff}
+.mo-d .n{font-size:11px;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;margin-bottom:1px}
+.cm{font-size:10.5px;padding:1px 4px;border-radius:4px;border:1px solid;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cm.busy{background:var(--busy);border-color:var(--busy-b)}.cm.allday{background:var(--allday);border-color:var(--allday-b)}
+.cm.prop{background:var(--prop);border:1px dashed var(--prop-b)}.cm.prov{background:var(--prov);border-color:var(--prov-b)}
+.cm.conf{background:var(--conf);border-color:var(--conf-b)}.cm.rem{background:var(--rem);border-color:var(--rem-b)}
+/* richieste */
+.req{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#fff}
+.req h3{margin:0 0 4px;font-size:15px}
+.req .meta{font-size:13px;color:var(--muted);margin-bottom:8px}
+.opt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 8px;border-radius:8px;background:#fffbe0;border:1px solid var(--prov-b);margin-bottom:6px}
+.opt.c{background:#e6f7ea;border-color:var(--conf-b)}
+.opt .d{flex:1;min-width:180px}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+.info{background:#e7f0ff;border:1px solid #b6d0ff;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.okbox{background:#e6f7ea;border:1px solid #9bd8a9;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+dialog{border:1px solid var(--line);border-radius:12px;max-width:640px;width:94vw;padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:18px 12px 28px}
+footer a{color:var(--primary)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+</style>
+</head>
+<body>
+
+<div id="busy" class="hidden">Caricamento…</div>
+<div id="msg" class="hidden"></div>
+
+<!-- LOGIN -->
+<section id="login" class="center">
+  <div class="card login">
+    <h1 style="margin-top:0">Gestione Demo</h1>
+    <p>Accedi con l'account Google aziendale <b>ivo.taffarel@infodati.it</b> per gestire gli appuntamenti demo sul tuo calendario.</p>
+    <div id="cidBox" class="hidden">
+      <label for="cidInput">Google Client ID (da inserire una sola volta)</label>
+      <input id="cidInput" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off">
+    </div>
+    <div class="row"><button id="btnLogin" class="btn primary">Accedi con Google</button></div>
+    <p id="loginMsg" class="err"></p>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header>
+    <h1>Gestione Demo</h1><span class="ver">v<span class="vnum"></span></span>
+    <span class="sp"></span>
+    <span class="usr" id="usr"></span>
+    <button class="btn sm" id="btnLogout">Esci</button>
+  </header>
+  <nav>
+    <button data-tab="new" class="on">Nuova richiesta</button>
+    <button data-tab="req">Richieste</button>
+    <button data-tab="set">Impostazioni</button>
+  </nav>
+  <main>
+    <!-- NUOVA RICHIESTA -->
+    <section id="tab-new">
+      <div class="layout">
+        <div>
+          <div class="card">
+            <h2>Richiesta demo</h2>
+            <label for="cName">Nome cliente *</label><input id="cName" autocomplete="off">
+            <label for="cEmail">Email cliente</label><input id="cEmail" type="email" autocomplete="off">
+            <label for="cNote">Azienda / note</label><input id="cNote" autocomplete="off">
+            <div class="g2">
+              <div><label for="cDur">Durata demo</label>
+                <select id="cDur"><option value="30">30 minuti</option><option value="45">45 minuti</option><option value="60">60 minuti</option><option value="90">90 minuti</option><option value="120">120 minuti</option></select></div>
+              <div><label for="cLead">Anticipo (giorni lavorativi)</label><input id="cLead" type="number" min="0" max="60"></div>
+            </div>
+            <div class="row"><button id="btnGen" class="btn primary">Genera 2 proposte</button></div>
+          </div>
+
+          <div id="propCard" class="card hidden">
+            <h2>Proposte (non ancora salvate)</h2>
+            <div id="propRows"></div>
+            <div class="row">
+              <button id="btnMore" class="btn">Altre proposte</button>
+              <button id="btnSave" class="btn ok">Salva nel calendario</button>
+            </div>
+          </div>
+
+          <div id="savedBox" class="okbox hidden"></div>
+
+          <div id="mailCard" class="card hidden">
+            <h2>Bozza email al cliente</h2>
+            <label for="mSubj">Oggetto</label><input id="mSubj">
+            <label for="mBody">Testo (modificabile)</label><textarea id="mBody"></textarea>
+            <div class="row">
+              <button id="btnCopyS" class="btn sm">Copia oggetto</button>
+              <button id="btnCopyB" class="btn sm">Copia testo</button>
+              <a id="btnMailto" class="btn sm" style="text-decoration:none;text-align:center" href="#">Apri nel client di posta</a>
+            </div>
+            <div class="row"><button id="btnRegen" class="btn sm">Rigenera bozza</button><button id="btnNew" class="btn sm">Nuova richiesta</button></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cal-head">
+            <button class="btn sm" id="calPrev">◀</button>
+            <button class="btn sm" id="calToday">Oggi</button>
+            <button class="btn sm" id="calNext">▶</button>
+            <span class="ttl" id="calTitle"></span>
+            <button class="btn sm" id="calWeek">Settimana</button>
+            <button class="btn sm" id="calMonth">Mese</button>
+          </div>
+          <div class="legend">
+            <span><i class="l-busy"></i>Occupato</span>
+            <span><i class="l-allday"></i>Tutto il giorno</span>
+            <span><i class="l-prop"></i>Proposta (da salvare)</span>
+            <span><i class="l-prov"></i>Provvisorio</span>
+            <span><i class="l-conf"></i>Confermato</span>
+            <span><i class="l-rem"></i>Promemoria</span>
+          </div>
+          <div class="cal-scroll" id="calBox"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RICHIESTE -->
+    <section id="tab-req" class="hidden">
+      <div class="card">
+        <div class="cal-head"><h2 style="margin:0;flex:1">Richieste in attesa di conferma</h2><button class="btn sm" id="btnReload">Aggiorna</button></div>
+        <div id="pendList"></div>
+      </div>
+      <div class="card">
+        <h2>Demo confermate (prossime)</h2>
+        <div id="confList"></div>
+      </div>
+    </section>
+
+    <!-- IMPOSTAZIONI -->
+    <section id="tab-set" class="hidden">
+      <div class="card">
+        <h2>Impostazioni</h2>
+        <p style="margin-top:0;color:var(--muted)">Versione applicazione: <b>v<span class="vnum"></span></b></p>
+        <div class="sgrid">
+          <div><label for="sWs">Inizio giornata</label><input id="sWs" type="time"></div>
+          <div><label for="sWe">Fine giornata</label><input id="sWe" type="time"></div>
+          <div><label for="sLs">Inizio pausa pranzo</label><input id="sLs" type="time"></div>
+          <div><label for="sLe">Fine pausa pranzo</label><input id="sLe" type="time"></div>
+          <div><label for="sStep">Intervallo orari proposti</label>
+            <select id="sStep"><option value="15">15 minuti</option><option value="30">30 minuti</option><option value="60">60 minuti</option></select></div>
+          <div><label for="sDur">Durata demo predefinita</label>
+            <select id="sDur"><option value="30">30 minuti</option><option value="45">45 minuti</option><option value="60">60 minuti</option><option value="90">90 minuti</option><option value="120">120 minuti</option></select></div>
+          <div><label for="sLead">Anticipo predefinito (giorni lavorativi)</label><input id="sLead" type="number" min="0" max="60"></div>
+          <div><label for="sHor">Cerca date entro (giorni)</label><input id="sHor" type="number" min="7" max="180"></div>
+          <div><label for="sRemD">Promemoria scadenza dopo (giorni)</label><input id="sRemD" type="number" min="1" max="60"></div>
+          <div><label for="sRemT">Ora del promemoria</label><input id="sRemT" type="time"></div>
+        </div>
+        <div id="sCidBox"><label for="sCid">Google Client ID</label><input id="sCid" autocomplete="off"></div>
+        <div class="row"><button id="btnSetSave" class="btn primary">Salva impostazioni</button><button id="btnSetReset" class="btn">Ripristina predefiniti</button></div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:0">Le impostazioni sono salvate solo in questo browser. Giorni lavorativi: lunedì-venerdì. Gli eventi "tutto il giorno" sono sempre considerati occupati.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="dlg">
+  <h2 id="dlgTitle" style="margin-top:0">Bozza email</h2>
+  <label for="dSubj">Oggetto</label><input id="dSubj">
+  <label for="dBody">Testo</label><textarea id="dBody"></textarea>
+  <div class="row">
+    <button class="btn sm" id="dCopyS">Copia oggetto</button>
+    <button class="btn sm" id="dCopyB">Copia testo</button>
+    <a class="btn sm" id="dMail" style="text-decoration:none;text-align:center" href="#">Apri nel client di posta</a>
+    <button class="btn sm" id="dClose">Chiudi</button>
+  </div>
+</dialog>
+
+<footer>
+  Contatta lo sviluppatore: <a href="mailto:ivotaffarel@gmail.com">ivotaffarel@gmail.com</a> · v<span class="vnum"></span>
+</footer>
+
+<script>
+'use strict';
+/* ===== CONFIGURAZIONE ===== */
+const APP_VERSION = '1.0';
+const ALLOWED_EMAIL = 'ivo.taffarel@infodati.it';
+const CLIENT_ID_CONST = ''; // opzionale: incolla qui il Client ID (altrimenti viene chiesto al primo accesso)
+const SCOPES = 'openid email https://www.googleapis.com/auth/calendar.events';
+const TZ = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'Europe/Rome';
+const DEFAULTS = {
+  workStart:'08:30', workEnd:'18:00', lunchStart:'12:30', lunchEnd:'14:00',
+  step:30, leadDays:2, horizonDays:45, defaultDuration:60, reminderDays:5, reminderTime:'09:00', clientId:''
+};
+
+/* ===== UTILITY ===== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d,n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+const isWeekend = d => d.getDay()===0 || d.getDay()===6;
+const toMin = s => { const p = String(s).split(':').map(Number); return p[0]*60 + (p[1]||0); };
+const atMin = (d,m) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, m);
+const hhmm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+const dateVal = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+const parseDay = s => { const p = s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); };
+const startOfWeek = d => { const x = sod(d); return addDays(x, -((x.getDay()+6)%7)); };
+const fmtDay = d => new Intl.DateTimeFormat('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d);
+const fmtShort = d => new Intl.DateTimeFormat('it-IT',{weekday:'short',day:'numeric',month:'short'}).format(d);
+const WD = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+function addWorkingDays(d,n){ let x = sod(d); while(n>0){ x = addDays(x,1); if(!isWeekend(x)) n--; } return x; }
+function overlap(aS,aE,bS,bE){ return aS < bE && aE > bS; }
+
+let msgTimer = null;
+function notify(text,type){
+  const m = $('msg'); m.textContent = text; m.className = type || 'info';
+  clearTimeout(msgTimer); msgTimer = setTimeout(()=>m.classList.add('hidden'), type==='err' ? 9000 : 5000);
+}
+let busyCount = 0;
+function setBusy(on){ busyCount += on ? 1 : -1; if(busyCount<0) busyCount=0; $('busy').classList.toggle('hidden', busyCount===0); }
+
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); notify('Copiato negli appunti','ok'); }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); notify('Copiato negli appunti','ok'); }catch(_){ notify('Copia non riuscita','err'); }
+    ta.remove();
+  }
+}
+
+/* ===== IMPOSTAZIONI ===== */
+let S = Object.assign({}, DEFAULTS);
+function loadSettings(){
+  try{ const j = JSON.parse(localStorage.getItem('gd_settings') || '{}'); S = Object.assign({}, DEFAULTS, j); }
+  catch(e){ S = Object.assign({}, DEFAULTS); }
+}
+function saveSettings(){ try{ localStorage.setItem('gd_settings', JSON.stringify(S)); }catch(e){} }
+const getClientId = () => CLIENT_ID_CONST || S.clientId || '';
+
+/* ===== AUTENTICAZIONE ===== */
+let token = null, tokenExp = 0, tokenClient = null, userEmail = '';
+
+function onGsiLoad(){ setupAuth(); }
+function setupAuth(){
+  const cid = getClientId();
+  if(!(window.google && google.accounts && google.accounts.oauth2) || !cid) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: cid, scope: SCOPES, hd: 'infodati.it',
+    callback: onToken,
+    error_callback: err => showLogin('Accesso annullato o non riuscito (' + ((err && err.type) || 'errore') + ').')
+  });
+}
+function showLogin(msg){
+  token = null;
+  $('app').classList.add('hidden'); $('login').classList.remove('hidden');
+  $('loginMsg').textContent = msg || '';
+  $('cidBox').classList.toggle('hidden', !!CLIENT_ID_CONST || !!S.clientId);
+}
+function showApp(){
+  $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('usr').textContent = userEmail;
+}
+function doLogin(){
+  $('loginMsg').textContent = '';
+  if(!getClientId()){
+    const v = $('cidInput').value.trim();
+    if(!v){ $('loginMsg').textContent = 'Inserisci il Google Client ID.'; return; }
+    S.clientId = v; saveSettings();
+  }
+  if(!tokenClient) setupAuth();
+  if(!tokenClient){ $('loginMsg').textContent = 'Libreria Google non ancora caricata: riprova tra qualche secondo.'; return; }
+  tokenClient.requestAccessToken({ hint: ALLOWED_EMAIL });
+}
+async function onToken(resp){
+  if(!resp || resp.error){ showLogin('Errore di accesso: ' + ((resp && resp.error) || 'sconosciuto')); return; }
+  const t = resp.access_token;
+  const revoke = () => { try{ google.accounts.oauth2.revoke(t, ()=>{}); }catch(e){} };
+  if(!google.accounts.oauth2.hasGrantedAllScopes(resp, 'https://www.googleapis.com/auth/calendar.events')){
+    revoke(); showLogin('Permesso sul calendario non concesso: riprova e spunta l\'accesso agli eventi.'); return;
+  }
+  try{
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers:{ Authorization:'Bearer ' + t } });
+    const u = await r.json();
+    if(!u.email || String(u.email).toLowerCase() !== ALLOWED_EMAIL || u.email_verified === false){
+      revoke(); showLogin('Account non autorizzato' + (u.email ? ' (' + u.email + ')' : '') + '. Accesso bloccato.'); return;
+    }
+    userEmail = u.email;
+  }catch(e){ revoke(); showLogin('Impossibile verificare l\'account.'); return; }
+  token = t; tokenExp = Date.now() + (Number(resp.expires_in || 3600) - 60) * 1000;
+  showApp();
+  await initialLoad();
+}
+function logout(){
+  if(token){ try{ google.accounts.oauth2.revoke(token, ()=>{}); }catch(e){} }
+  token = null; events = []; proposals = []; loadedFrom = loadedTo = null;
+  showLogin('Disconnesso.');
+}
+setInterval(() => { if(token && Date.now() > tokenExp){ showLogin('Sessione scaduta: accedi di nuovo.'); } }, 20000);
+
+/* ===== API CALENDAR ===== */
+async function gapi(path, opt){
+  opt = opt || {};
+  if(!token) throw new Error('Non autenticato');
+  const url = new URL('https://www.googleapis.com/calendar/v3' + path);
+  const params = opt.params || {};
+  Object.keys(params).forEach(k => { if(params[k] !== undefined && params[k] !== null) url.searchParams.set(k, params[k]); });
+  const headers = { Authorization: 'Bearer ' + token };
+  if(opt.body) headers['Content-Type'] = 'application/json';
+  const r = await fetch(url.toString(), { method: opt.method || 'GET', headers, body: opt.body ? JSON.stringify(opt.body) : undefined });
+  if(r.status === 401){ showLogin('Sessione scaduta: accedi di nuovo.'); throw new Error('Sessione scaduta'); }
+  if(r.status === 204) return null;
+  let data = null; try{ data = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error((data && data.error && data.error.message) || ('Errore ' + r.status));
+  return data;
+}
+async function listEvents(from, to, extra){
+  let out = [], pageToken;
+  do{
+    const p = Object.assign({ singleEvents:'true', orderBy:'startTime', maxResults:'2500', timeMin: from.toISOString(), timeMax: to.toISOString(), pageToken }, extra || {});
+    const d = await gapi('/calendars/primary/events', { params: p });
+    out = out.concat(d.items || []); pageToken = d.nextPageToken;
+  }while(pageToken);
+  return out;
+}
+function normalize(ev){
+  if(!ev.start || ev.status === 'cancelled') return null;
+  const me = (ev.attendees || []).find(a => a.self);
+  if(me && me.responseStatus === 'declined') return null;
+  const allDay = !!ev.start.date;
+  const start = allDay ? parseDay(ev.start.date) : new Date(ev.start.dateTime);
+  const end = allDay ? parseDay(ev.end.date) : new Date(ev.end.dateTime);
+  const priv = (ev.extendedProperties && ev.extendedProperties.private) || {};
+  let kind = 'busy';
+  if(priv.demoApp === '1') kind = priv.demoRole === 'reminder' ? 'reminder' : (priv.demoStatus === 'confirmed' ? 'conf' : 'prov');
+  else if(allDay) kind = 'allday';
+  const free = !allDay && kind === 'busy' && ev.transparency === 'transparent';
+  const blocks = kind === 'conf' || kind === 'prov' || kind === 'allday' || (kind === 'busy' && !free);
+  return { id: ev.id, title: ev.summary || '(senza titolo)', description: ev.description || '', start, end, allDay, priv, kind, free, blocks };
+}
+
+/* ===== STATO ===== */
+let events = [], proposals = [], avail = [], availIdx = 0;
+let viewMode = 'week', viewDate = new Date();
+let loadedFrom = null, loadedTo = null;
+let mailDirty = false, saving = false;
+
+function viewRange(){
+  if(viewMode === 'week'){ const m = startOfWeek(viewDate); return { from: m, to: addDays(m,7) }; }
+  const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+  const last = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 0);
+  return { from: startOfWeek(first), to: addDays(startOfWeek(last), 7) };
+}
+async function loadEvents(force){
+  const r = viewRange(), today = sod(new Date());
+  const needFrom = new Date(Math.min(r.from.getTime(), today.getTime()));
+  const needTo = new Date(Math.max(r.to.getTime(), addDays(today, S.horizonDays + 8).getTime()));
+  if(!force && loadedFrom && needFrom >= loadedFrom && needTo <= loadedTo){ renderCalendar(); return; }
+  setBusy(true);
+  try{
+    const items = await listEvents(needFrom, needTo);
+    events = items.map(normalize).filter(Boolean);
+    loadedFrom = needFrom; loadedTo = needTo;
+  }catch(e){ notify('Errore caricamento calendario: ' + e.message, 'err'); }
+  finally{ setBusy(false); }
+  renderCalendar(); renderProposals();
+}
+
+/* ===== LOGICA SLOT ===== */
+function conflicts(s, e){ return events.some(ev => ev.blocks && overlap(ev.start, ev.end, s, e)); }
+function windowsOf(){ return [[toMin(S.workStart), toMin(S.lunchStart)], [toMin(S.lunchEnd), toMin(S.workEnd)]]; }
+function freeSlots(day, dur){
+  const out = [], now = new Date();
+  windowsOf().forEach(w => {
+    for(let t = w[0]; t + dur <= w[1]; t += S.step){
+      const s = atMin(day, t), e = atMin(day, t + dur);
+      if(s > now && !conflicts(s, e)) out.push({ start: s, end: e });
+    }
+  });
+  return out;
+}
+function computeAvail(dur, lead){
+  const today = sod(new Date());
+  const first = lead === 0 ? today : addWorkingDays(today, lead);
+  const res = [];
+  for(let i = 0; i <= S.horizonDays; i++){
+    const d = addDays(first, i);
+    if(isWeekend(d)) continue;
+    const sl = freeSlots(d, dur);
+    if(sl.length) res.push({ day: d, slots: sl });
+  }
+  return res;
+}
+function pickClosest(slots, target){
+  let best = slots[0], bd = Infinity;
+  slots.forEach(s => { const m = s.start.getHours()*60 + s.start.getMinutes(); const dd = Math.abs(m - target); if(dd < bd){ bd = dd; best = s; } });
+  return best;
+}
+function curDuration(){ return Number($('cDur').value) || S.defaultDuration; }
+
+function pickProposals(){
+  const a = avail[availIdx], b = avail[availIdx + 1];
+  const p1 = pickClosest(a.slots, 10*60), p2 = pickClosest(b.slots, 15*60);
+  proposals = [{ start: p1.start, end: p1.end }, { start: p2.start, end: p2.end }];
+}
+async function generate(){
+  const name = $('cName').value.trim();
+  if(!name){ notify('Inserisci il nome del cliente', 'err'); $('cName').focus(); return; }
+  await loadEvents(true);
+  const lead = Math.max(0, Number($('cLead').value) || 0);
+  avail = computeAvail(curDuration(), lead);
+  if(avail.length < 2){ notify('Non ci sono almeno 2 giorni liberi nel periodo cercato. Aumenta l\'orizzonte nelle impostazioni o riduci la durata.', 'err'); return; }
+  availIdx = 0; pickProposals();
+  $('savedBox').classList.add('hidden');
+  afterProposalChange(true);
+}
+function moreProposals(){
+  if(!avail.length) return;
+  availIdx += 2;
+  if(availIdx + 1 >= avail.length){ availIdx = 0; notify('Hai visto tutte le date disponibili: riparto dall\'inizio.', 'info'); }
+  pickProposals(); afterProposalChange(true);
+}
+function afterProposalChange(jump){
+  if(jump && proposals[0]){ viewDate = proposals[0].start; loadEvents(false); }
+  renderProposals(); renderCalendar(); updateDraft(false);
+}
+
+function checkProposal(i){
+  const p = proposals[i], other = proposals[1 - i];
+  if(!p || isNaN(p.start)) return { level:'bad', msg:'Data/ora non valide' };
+  if(isWeekend(p.start)) return { level:'bad', msg:'Weekend: scegli un giorno lavorativo' };
+  if(p.start < new Date()) return { level:'bad', msg:'Data nel passato' };
+  if(other && !isNaN(other.start) && dateVal(other.start) === dateVal(p.start)) return { level:'bad', msg:'Le due proposte devono essere su giorni diversi' };
+  if(conflicts(p.start, p.end)) return { level:'bad', msg:'Occupato: sovrapposto a un impegno' };
+  const sm = p.start.getHours()*60 + p.start.getMinutes(), em = sm + (p.end - p.start)/60000;
+  const inWin = windowsOf().some(w => sm >= w[0] && em <= w[1]);
+  if(!inWin) return { level:'warn', msg:'Libero, ma fuori orario standard o in pausa pranzo' };
+  return { level:'good', msg:'Libero' };
+}
+function proposalsValid(){ return proposals.length === 2 && [0,1].every(i => checkProposal(i).level !== 'bad'); }
+
+function renderProposals(){
+  const card = $('propCard');
+  if(!proposals.length){ card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  $('propRows').innerHTML = proposals.map((p, i) => {
+    const c = checkProposal(i);
+    return '<div class="prop-row"><div class="t">Opzione ' + (i+1) + ' · ' + esc(isNaN(p.start) ? '' : fmtShort(p.start)) + '</div>' +
+      '<div class="pf"><input type="date" data-i="' + i + '" data-f="d" value="' + (isNaN(p.start) ? '' : dateVal(p.start)) + '">' +
+      '<input type="time" step="' + (S.step*60) + '" data-i="' + i + '" data-f="t" value="' + (isNaN(p.start) ? '' : hhmm(p.start)) + '">' +
+      '<span class="end">→ ' + (isNaN(p.end) ? '' : hhmm(p.end)) + '</span></div>' +
+      '<span class="chip ' + c.level + '">' + esc(c.msg) + '</span></div>';
+  }).join('');
+  $('btnSave').disabled = saving || !proposalsValid();
+}
+function onProposalEdit(e){
+  const t = e.target; if(!t.dataset || t.dataset.i === undefined) return;
+  const i = Number(t.dataset.i);
+  const dEl = document.querySelector('input[data-i="' + i + '"][data-f="d"]');
+  const tEl = document.querySelector('input[data-i="' + i + '"][data-f="t"]');
+  if(!dEl.value || !tEl.value) return;
+  const dp = parseDay(dEl.value), tp = toMin(tEl.value);
+  const s = atMin(dp, tp);
+  proposals[i] = { start: s, end: new Date(s.getTime() + curDuration()*60000) };
+  renderProposals(); renderCalendar(); updateDraft(false);
+}
+function onDurationChange(){
+  if(!proposals.length) return;
+  proposals = proposals.map(p => ({ start: p.start, end: new Date(p.start.getTime() + curDuration()*60000) }));
+  renderProposals(); renderCalendar(); updateDraft(false);
+}
+
+/* ===== EMAIL ===== */
+function buildProposalMail(name, dur, slots){
+  const lines = slots.map((s, i) => '• Opzione ' + (i+1) + ': ' + fmtDay(s.start) + ', dalle ' + hhmm(s.start) + ' alle ' + hhmm(s.end));
+  return {
+    subject: 'Proposta appuntamento demo',
+    body: 'Gentile ' + name + ',\n\ngrazie per la richiesta di demo. Le propongo i seguenti due appuntamenti (durata ' + dur + ' minuti):\n\n' +
+      lines.join('\n') + '\n\nLa invito a rispondermi indicando quale preferisce, così potrò confermare l\'appuntamento. Se nessuna delle due date fosse adatta, mi indichi pure alcune sue disponibilità e troveremo un\'alternativa.\n\nCordiali saluti,\nIvo Taffarel\nInfodati'
+  };
+}
+function buildConfirmMail(name, s, e){
+  return {
+    subject: 'Conferma appuntamento demo - ' + fmtDay(s),
+    body: 'Gentile ' + name + ',\n\nconfermo l\'appuntamento per la demo:\n\n' + fmtDay(s) + ', dalle ' + hhmm(s) + ' alle ' + hhmm(e) + '\n\nResto a disposizione per qualsiasi necessità.\n\nCordiali saluti,\nIvo Taffarel\nInfodati'
+  };
+}
+function mailtoHref(to, subj, body){ return 'mailto:' + encodeURIComponent(to || '') + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body); }
+function updateDraft(force){
+  if(proposals.length !== 2 || proposals.some(p => isNaN(p.start))) return;
+  if(mailDirty && !force) { refreshMailto(); return; }
+  const m = buildProposalMail($('cName').value.trim() || 'cliente', curDuration(), proposals);
+  $('mSubj').value = m.subject; $('mBody').value = m.body; mailDirty = false;
+  $('mailCard').classList.remove('hidden'); refreshMailto();
+}
+function refreshMailto(){ $('btnMailto').href = mailtoHref($('cEmail').value.trim(), $('mSubj').value, $('mBody').value); }
+
+/* ===== SALVATAGGIO ===== */
+function reminderDate(){
+  let d = addDays(sod(new Date()), S.reminderDays);
+  while(isWeekend(d)) d = addDays(d, 1);
+  const t = toMin(S.reminderTime);
+  return atMin(d, t);
+}
+async function saveProposals(){
+  if(saving) return;
+  const name = $('cName').value.trim();
+  if(!name){ notify('Inserisci il nome del cliente', 'err'); return; }
+  saving = true; $('btnSave').disabled = true; setBusy(true);
+  const created = [];
+  try{
+    await loadEvents(true);
+    if(!proposalsValid()){ notify('Le proposte non sono più valide (calendario cambiato). Controlla le segnalazioni.', 'err'); renderProposals(); return; }
+    const email = $('cEmail').value.trim(), note = $('cNote').value.trim(), dur = curDuration();
+    const demoId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    for(let i = 0; i < 2; i++){
+      const p = proposals[i];
+      const body = {
+        summary: '[PROVVISORIO] Demo - ' + name,
+        description: 'Demo ' + dur + ' minuti\nCliente: ' + name + (email ? '\nEmail: ' + email : '') + (note ? '\nNote: ' + note : '') +
+          '\nOpzione ' + (i+1) + ' di 2 (in attesa di conferma)\nCreato da Gestione Demo v' + APP_VERSION,
+        start: { dateTime: p.start.toISOString(), timeZone: TZ },
+        end: { dateTime: p.end.toISOString(), timeZone: TZ },
+        colorId: '5',
+        extendedProperties: { private: { demoApp:'1', demoId, demoRole:'demo', demoStatus:'provisional', demoOption:String(i+1), clientName:name, clientEmail:email, duration:String(dur) } }
+      };
+      const ev = await gapi('/calendars/primary/events', { method:'POST', body });
+      created.push(ev.id);
+    }
+    const rs = reminderDate(), re = new Date(rs.getTime() + 15*60000);
+    const rem = await gapi('/calendars/primary/events', { method:'POST', body: {
+      summary: '⏰ Scadenza demo - ' + name + ' (nessuna risposta?)',
+      description: 'Il cliente non ha ancora confermato una delle due proposte.\nApri Gestione Demo → Richieste per confermare o eliminare.',
+      start: { dateTime: rs.toISOString(), timeZone: TZ }, end: { dateTime: re.toISOString(), timeZone: TZ },
+      transparency: 'transparent', colorId: '3',
+      reminders: { useDefault:false, overrides:[ { method:'popup', minutes:0 }, { method:'email', minutes:0 } ] },
+      extendedProperties: { private: { demoApp:'1', demoId, demoRole:'reminder', demoStatus:'provisional', clientName:name } }
+    }});
+    created.push(rem.id);
+    const saved = proposals.slice();
+    proposals = [];
+    $('propCard').classList.add('hidden');
+    $('savedBox').innerHTML = '<b>Salvato.</b> Create 2 proposte provvisorie sul calendario (' + saved.map(p => esc(fmtShort(p.start)) + ' ' + hhmm(p.start)).join(' e ') +
+      ') e il promemoria di scadenza per <b>' + esc(fmtDay(rs)) + '</b> alle ' + hhmm(rs) + '. Ora copia la bozza qui sotto e inviala al cliente.';
+    $('savedBox').classList.remove('hidden');
+    await loadEvents(true);
+    notify('Proposte salvate nel calendario', 'ok');
+  }catch(e){
+    for(const id of created){ try{ await gapi('/calendars/primary/events/' + encodeURIComponent(id), { method:'DELETE' }); }catch(_){} }
+    notify('Salvataggio non riuscito: ' + e.message + (created.length ? ' (eventuali eventi creati sono stati rimossi)' : ''), 'err');
+  }finally{
+    saving = false; setBusy(false); renderProposals();
+  }
+}
+function newRequest(){
+  ['cName','cEmail','cNote'].forEach(id => $(id).value = '');
+  $('cDur').value = String(S.defaultDuration); $('cLead').value = S.leadDays;
+  proposals = []; avail = []; mailDirty = false;
+  $('propCard').classList.add('hidden'); $('mailCard').classList.add('hidden'); $('savedBox').classList.add('hidden');
+  $('mSubj').value = ''; $('mBody').value = '';
+  renderCalendar();
+}
+
+/* ===== CALENDARIO (RENDER) ===== */
+function covers(ev, ds, de){ return ev.start < de && ev.end > ds; }
+function renderCalendar(){
+  const r = viewRange();
+  if(viewMode === 'week'){
+    const d5 = addDays(r.from, 4);
+    $('calTitle').textContent = r.from.getDate() + ' ' + new Intl.DateTimeFormat('it-IT',{month:'short'}).format(r.from) + ' – ' + d5.getDate() + ' ' + new Intl.DateTimeFormat('it-IT',{month:'long',year:'numeric'}).format(d5);
+    $('calBox').innerHTML = renderWeek(r.from);
+  }else{
+    $('calTitle').textContent = new Intl.DateTimeFormat('it-IT',{month:'long',year:'numeric'}).format(viewDate);
+    $('calBox').innerHTML = renderMonth(r);
+  }
+  $('calWeek').classList.toggle('primary', viewMode === 'week');
+  $('calMonth').classList.toggle('primary', viewMode === 'month');
+}
+function kindClass(ev){ return ev.kind === 'reminder' ? 'rem' : ev.kind === 'busy' && ev.free ? 'busy free' : ev.kind; }
+
+function renderWeek(mon){
+  const H0 = 8*60, H1 = 19*60, PPM = 0.9, colH = (H1 - H0) * PPM, today = sod(new Date());
+  const days = [0,1,2,3,4].map(i => addDays(mon, i));
+  let h = '<div class="wk">';
+  h += '<div class="wk-h"></div>' + days.map(d => '<div class="wk-h' + (+d === +today ? ' today' : '') + '">' + WD[d.getDay()] + ' ' + d.getDate() + '</div>').join('');
+  h += '<div class="wk-adl">tutto il giorno</div>' + days.map(d => {
+    const ds = sod(d), de = addDays(ds, 1);
+    return '<div class="wk-ad">' + events.filter(ev => ev.allDay && covers(ev, ds, de)).map(ev => '<div class="ad" title="' + esc(ev.title) + '">' + esc(ev.title) + '</div>').join('') + '</div>';
+  }).join('');
+  let tl = '<div class="tl" style="height:' + colH + 'px">';
+  for(let hr = 8; hr <= 18; hr++) tl += '<span style="top:' + ((hr*60 - H0) * PPM) + 'px">' + pad(hr) + ':00</span>';
+  tl += '</div>';
+  h += tl;
+  const ws = toMin(S.workStart), we = toMin(S.workEnd), ls = toMin(S.lunchStart), le = toMin(S.lunchEnd);
+  const band = (a, b) => (b > a) ? '<div class="band" style="top:' + ((Math.max(a,H0) - H0) * PPM) + 'px;height:' + ((Math.min(b,H1) - Math.max(a,H0)) * PPM) + 'px"></div>' : '';
+  days.forEach(d => {
+    const ds = sod(d), de = addDays(ds, 1), items = [];
+    events.forEach(ev => { if(!ev.allDay && covers(ev, ds, de)) items.push({ s: ev.start > ds ? ev.start : ds, e: ev.end < de ? ev.end : de, cls: kindClass(ev), title: ev.title }); });
+    proposals.forEach((p, i) => { if(!isNaN(p.start) && covers(p, ds, de)) items.push({ s: p.start, e: p.end, cls: 'prop', title: 'Proposta ' + (i+1) }); });
+    items.sort((a, b) => (a.s - b.s) || (b.e - a.e));
+    const lanes = [];
+    items.forEach(it => { let l = lanes.findIndex(end => end <= it.s); if(l < 0){ l = lanes.length; lanes.push(it.e); } else lanes[l] = it.e; it.lane = l; });
+    const n = Math.max(1, lanes.length);
+    let c = '<div class="col" style="height:' + colH + 'px">' + band(H0, ws) + band(ls, le) + band(we, H1);
+    items.forEach(it => {
+      const sm = (it.s - ds)/60000, em = (it.e - ds)/60000;
+      const top = (Math.max(sm, H0) - H0) * PPM, bot = (Math.min(em, H1) - H0) * PPM;
+      if(bot <= 0 || top >= colH) return;
+      const hh = Math.max(bot - top, 14);
+      c += '<div class="ev ' + it.cls + '" style="top:' + top + 'px;height:' + hh + 'px;left:' + (it.lane * 100 / n) + '%;width:' + (100 / n) + '%" title="' + esc(hhmm(it.s) + '–' + hhmm(it.e) + ' ' + it.title) + '"><b>' + hhmm(it.s) + '</b> ' + esc(it.title) + '</div>';
+    });
+    h += c + '</div>';
+  });
+  return h + '</div>';
+}
+function renderMonth(r){
+  const today = sod(new Date()), cm = viewDate.getMonth();
+  let h = '<div class="mo">' + ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(x => '<div class="mo-h">' + x + '</div>').join('');
+  for(let d = r.from; d < r.to; d = addDays(d, 1)){
+    const ds = sod(d), de = addDays(ds, 1), chips = [];
+    let nBusy = 0;
+    events.forEach(ev => {
+      if(!covers(ev, ds, de)) return;
+      if(ev.kind === 'allday') chips.push('<div class="cm allday" title="' + esc(ev.title) + '">' + esc(ev.title) + '</div>');
+      else if(ev.kind === 'busy') nBusy++;
+      else chips.push('<div class="cm ' + (ev.kind === 'reminder' ? 'rem' : ev.kind) + '" title="' + esc(ev.title) + '">' + hhmm(ev.start) + ' ' + esc(ev.title) + '</div>');
+    });
+    proposals.forEach((p, i) => { if(!isNaN(p.start) && covers(p, ds, de)) chips.push('<div class="cm prop">' + hhmm(p.start) + ' Proposta ' + (i+1) + '</div>'); });
+    if(nBusy) chips.push('<div class="cm busy">' + nBusy + (nBusy === 1 ? ' impegno' : ' impegni') + '</div>');
+    const shown = chips.slice(0, 5), more = chips.length - shown.length;
+    h += '<div class="mo-d' + (isWeekend(d) ? ' we' : '') + (d.getMonth() !== cm ? ' out' : '') + (+ds === +today ? ' today' : '') + '"><div class="n">' + d.getDate() + '</div>' + shown.join('') + (more > 0 ? '<div class="cm busy">+' + more + '</div>' : '') + '</div>';
+  }
+  return h + '</div>';
+}
+function navCal(dir){
+  if(dir === 0) viewDate = new Date();
+  else if(viewMode === 'week') viewDate = addDays(viewDate, 7 * dir);
+  else viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + dir, 1);
+  loadEvents(false);
+}
+
+/* ===== RICHIESTE ===== */
+let reqs = { pending: [], confirmed: [] };
+async function loadRequests(){
+  setBusy(true);
+  try{
+    const from = new Date(Date.now() - 86400000), to = addDays(sod(new Date()), 270);
+    const items = (await listEvents(from, to, { privateExtendedProperty: 'demoApp=1' })).map(normalize).filter(Boolean);
+    const map = {};
+    items.forEach(ev => {
+      const id = ev.priv.demoId || ev.id;
+      const g = map[id] || (map[id] = { id, client: ev.priv.clientName || '', email: ev.priv.clientEmail || '', duration: Number(ev.priv.duration) || 60, options: [], reminder: null });
+      if(ev.priv.clientName) g.client = ev.priv.clientName;
+      if(ev.priv.clientEmail) g.email = ev.priv.clientEmail;
+      if(ev.priv.duration) g.duration = Number(ev.priv.duration);
+      if(ev.kind === 'reminder') g.reminder = ev; else g.options.push(Object.assign({ opt: Number(ev.priv.demoOption) || 0 }, ev));
+    });
+    const groups = Object.keys(map).map(k => map[k]).filter(g => g.options.length);
+    groups.forEach(g => g.options.sort((a, b) => a.opt - b.opt));
+    const first = g => Math.min.apply(null, g.options.map(o => o.start.getTime()));
+    reqs.pending = groups.filter(g => !g.options.some(o => o.kind === 'conf')).sort((a, b) => first(a) - first(b));
+    reqs.confirmed = groups.filter(g => g.options.some(o => o.kind === 'conf')).sort((a, b) => first(a) - first(b));
+  }catch(e){ notify('Errore caricamento richieste: ' + e.message, 'err'); }
+  finally{ setBusy(false); }
+  renderRequests();
+}
+function renderRequests(){
+  $('pendList').innerHTML = reqs.pending.length ? reqs.pending.map(g => {
+    const rem = g.reminder ? 'Promemoria scadenza: ' + esc(fmtShort(g.reminder.start)) : 'Nessun promemoria';
+    return '<div class="req"><h3>' + esc(g.client || '(senza nome)') + '</h3><div class="meta">' + esc(g.email || 'email non indicata') + ' · ' + g.duration + ' min · ' + rem + '</div>' +
+      g.options.map(o => '<div class="opt"><span class="d"><b>Opzione ' + o.opt + ':</b> ' + esc(fmtDay(o.start)) + ', ' + hhmm(o.start) + '–' + hhmm(o.end) + '</span>' +
+        '<button class="btn sm ok" data-act="confirm" data-g="' + esc(g.id) + '" data-o="' + o.opt + '">Conferma opzione ' + o.opt + '</button></div>').join('') +
+      '<div class="row"><button class="btn sm" data-act="draft" data-g="' + esc(g.id) + '">Bozza mail proposte</button><button class="btn sm danger" data-act="del" data-g="' + esc(g.id) + '">Elimina richiesta</button></div></div>';
+  }).join('') : '<div class="empty">Nessuna richiesta in attesa.</div>';
+  $('confList').innerHTML = reqs.confirmed.length ? reqs.confirmed.map(g => {
+    const o = g.options.find(x => x.kind === 'conf') || g.options[0];
+    return '<div class="req"><h3>' + esc(g.client || '(senza nome)') + '</h3><div class="opt c"><span class="d">' + esc(fmtDay(o.start)) + ', ' + hhmm(o.start) + '–' + hhmm(o.end) + '</span>' +
+      '<button class="btn sm" data-act="cdraft" data-g="' + esc(g.id) + '">Bozza mail di conferma</button></div></div>';
+  }).join('') : '<div class="empty">Nessuna demo confermata in programma.</div>';
+}
+const findGroup = id => reqs.pending.concat(reqs.confirmed).find(g => g.id === id);
+async function delEvent(id){
+  try{ await gapi('/calendars/primary/events/' + encodeURIComponent(id), { method:'DELETE' }); }
+  catch(e){ if(!/Not Found|Resource has been deleted|410|404/i.test(e.message)) throw e; }
+}
+async function confirmOption(g, n){
+  const chosen = g.options.find(o => o.opt === n), other = g.options.find(o => o.opt !== n);
+  if(!chosen) return;
+  if(!confirm('Confermare l\'opzione ' + n + ' (' + fmtShort(chosen.start) + ' ' + hhmm(chosen.start) + ') per ' + g.client + '?\nL\'altra proposta e il promemoria verranno eliminati.')) return;
+  setBusy(true);
+  try{
+    const priv = Object.assign({}, chosen.priv, { demoStatus: 'confirmed' });
+    await gapi('/calendars/primary/events/' + encodeURIComponent(chosen.id), { method:'PATCH', body: {
+      summary: '[CONFERMATO] Demo - ' + g.client, colorId: '10',
+      description: (chosen.description || '').replace(/\(in attesa di conferma\)/, '(CONFERMATA)') + '\n\nConfermata il ' + new Date().toLocaleDateString('it-IT') + ' da Gestione Demo v' + APP_VERSION,
+      extendedProperties: { private: priv }
+    }});
+    if(other) await delEvent(other.id);
+    if(g.reminder) await delEvent(g.reminder.id);
+    notify('Appuntamento confermato; proposta alternativa e promemoria eliminati', 'ok');
+  }catch(e){ notify('Errore durante la conferma: ' + e.message, 'err'); }
+  finally{ setBusy(false); }
+  await loadRequests(); loadedFrom = null; loadEvents(true);
+}
+async function deleteRequest(g){
+  if(!confirm('Eliminare la richiesta di ' + g.client + ' (proposte e promemoria)?')) return;
+  setBusy(true);
+  try{
+    for(const o of g.options) await delEvent(o.id);
+    if(g.reminder) await delEvent(g.reminder.id);
+    notify('Richiesta eliminata', 'ok');
+  }catch(e){ notify('Errore durante l\'eliminazione: ' + e.message, 'err'); }
+  finally{ setBusy(false); }
+  await loadRequests(); loadedFrom = null; loadEvents(true);
+}
+function openDraft(title, to, m){
+  $('dlgTitle').textContent = title; $('dSubj').value = m.subject; $('dBody').value = m.body;
+  const upd = () => { $('dMail').href = mailtoHref(to, $('dSubj').value, $('dBody').value); };
+  $('dSubj').oninput = upd; $('dBody').oninput = upd; upd();
+  $('dlg').showModal();
+}
+function onReqClick(e){
+  const b = e.target.closest('button[data-act]'); if(!b) return;
+  const g = findGroup(b.dataset.g); if(!g) return;
+  const act = b.dataset.act;
+  if(act === 'confirm') confirmOption(g, Number(b.dataset.o));
+  else if(act === 'del') deleteRequest(g);
+  else if(act === 'draft') openDraft('Bozza mail proposte', g.email, buildProposalMail(g.client, g.duration, g.options));
+  else if(act === 'cdraft'){ const o = g.options.find(x => x.kind === 'conf') || g.options[0]; openDraft('Bozza mail di conferma', g.email, buildConfirmMail(g.client, o.start, o.end)); }
+}
+
+/* ===== IMPOSTAZIONI (UI) ===== */
+function fillSettings(){
+  $('sWs').value = S.workStart; $('sWe').value = S.workEnd; $('sLs').value = S.lunchStart; $('sLe').value = S.lunchEnd;
+  $('sStep').value = String(S.step); $('sDur').value = String(S.defaultDuration); $('sLead').value = S.leadDays;
+  $('sHor').value = S.horizonDays; $('sRemD').value = S.reminderDays; $('sRemT').value = S.reminderTime; $('sCid').value = S.clientId || '';
+  $('sCidBox').classList.toggle('hidden', !!CLIENT_ID_CONST);
+}
+function saveSettingsUI(){
+  const n = {
+    workStart: $('sWs').value, workEnd: $('sWe').value, lunchStart: $('sLs').value, lunchEnd: $('sLe').value,
+    step: Number($('sStep').value), defaultDuration: Number($('sDur').value), leadDays: Math.max(0, Number($('sLead').value) || 0),
+    horizonDays: Math.min(180, Math.max(7, Number($('sHor').value) || 45)), reminderDays: Math.max(1, Number($('sRemD').value) || 5),
+    reminderTime: $('sRemT').value || '09:00', clientId: $('sCid').value.trim()
+  };
+  if(!(n.workStart && n.workEnd && n.lunchStart && n.lunchEnd) || !(toMin(n.workStart) < toMin(n.lunchStart) && toMin(n.lunchStart) < toMin(n.lunchEnd) && toMin(n.lunchEnd) < toMin(n.workEnd))){
+    notify('Orari non coerenti: inizio giornata < inizio pausa < fine pausa < fine giornata', 'err'); return;
+  }
+  const cidChanged = n.clientId !== S.clientId;
+  S = Object.assign({}, S, n); saveSettings();
+  $('cDur').value = String(S.defaultDuration); $('cLead').value = S.leadDays;
+  loadedFrom = null; loadEvents(true);
+  notify(cidChanged ? 'Impostazioni salvate. Il nuovo Client ID sarà usato al prossimo accesso.' : 'Impostazioni salvate', 'ok');
+  if(cidChanged) tokenClient = null;
+}
+
+/* ===== INIT ===== */
+function switchTab(t){
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  ['new','req','set'].forEach(x => $('tab-' + x).classList.toggle('hidden', x !== t));
+  if(t === 'req') loadRequests();
+  if(t === 'set') fillSettings();
+}
+async function initialLoad(){
+  $('cDur').value = String(S.defaultDuration); $('cLead').value = S.leadDays;
+  viewDate = new Date(); loadedFrom = null;
+  await loadEvents(true);
+}
+function init(){
+  loadSettings();
+  document.querySelectorAll('.vnum').forEach(e => e.textContent = APP_VERSION);
+  $('btnLogin').onclick = doLogin; $('btnLogout').onclick = logout;
+  document.querySelectorAll('nav button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+  $('btnGen').onclick = generate; $('btnMore').onclick = moreProposals; $('btnSave').onclick = saveProposals;
+  $('propRows').addEventListener('change', onProposalEdit);
+  $('cDur').onchange = onDurationChange;
+  $('cName').addEventListener('input', () => updateDraft(false));
+  $('cEmail').addEventListener('input', refreshMailto);
+  $('mSubj').addEventListener('input', () => { mailDirty = true; refreshMailto(); });
+  $('mBody').addEventListener('input', () => { mailDirty = true; refreshMailto(); });
+  $('btnCopyS').onclick = () => copyText($('mSubj').value); $('btnCopyB').onclick = () => copyText($('mBody').value);
+  $('btnRegen').onclick = () => { if(proposals.length === 2) updateDraft(true); else notify('Genera prima le proposte per rigenerare la bozza', 'info'); };
+  $('btnNew').onclick = newRequest;
+  $('calPrev').onclick = () => navCal(-1); $('calNext').onclick = () => navCal(1); $('calToday').onclick = () => navCal(0);
+  $('calWeek').onclick = () => { viewMode = 'week'; loadEvents(false); }; $('calMonth').onclick = () => { viewMode = 'month'; loadEvents(false); };
+  $('btnReload').onclick = loadRequests;
+  $('pendList').addEventListener('click', onReqClick); $('confList').addEventListener('click', onReqClick);
+  $('btnSetSave').onclick = saveSettingsUI;
+  $('btnSetReset').onclick = () => { const cid = S.clientId; S = Object.assign({}, DEFAULTS, { clientId: cid }); saveSettings(); fillSettings(); $('cDur').value = String(S.defaultDuration); $('cLead').value = S.leadDays; loadedFrom = null; loadEvents(true); notify('Impostazioni ripristinate', 'ok'); };
+  $('dClose').onclick = () => $('dlg').close();
+  $('dCopyS').onclick = () => copyText($('dSubj').value); $('dCopyB').onclick = () => copyText($('dBody').value);
+  showLogin('');
+}
+init();
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="onGsiLoad()"></script>
+</body>
+</html>
